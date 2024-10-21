@@ -39,6 +39,8 @@ ap.add_argument("-d1", "--dataset1", required=True,
                 help="path to input dataset 1")
 ap.add_argument("-d2", "--dataset2", required=True,
                 help="path to input dataset 2")
+ap.add_argument("-r", "--remove", type=int, default=0,
+                help="remove duplicate from larger dataset (1 for yes 0 for no)")
 args = vars(ap.parse_args())
 
 # grab the paths to all images in both datasets
@@ -61,10 +63,23 @@ for (h1, hashedPaths1) in hashes1.items():
             for p2 in hashedPaths2:
                 duplicates.append((p1, p2))
 
+larger_dataset = args["dataset1"] if len(imagePaths1) > len(imagePaths2) else args["dataset2"]
+
 # print the duplicate pairs
 if duplicates:
     print("[INFO] Duplicate images found between the two datasets:")
     for (image1, image2) in duplicates:
         print(f"Duplicate: {os.path.basename(image1)} <--> {os.path.basename(image2)}")
+    
+    if args["remove"] == 1:
+        print("Removing duplicates from larger dataset")
+        for(image1, image2) in duplicates:
+            if larger_dataset == args["dataset1"]:
+                if os.path.commonpath([image1], args["dataset1"]) == args["dataset1"]:
+                    os.remove(image1)
+                    print(f"[INFO] Deleted {image1}")
+            else:
+                os.remove(image2)
+                print(f"[INFO] Deleted {image2}")
 else:
     print("[INFO] No duplicates found between the two datasets.")
