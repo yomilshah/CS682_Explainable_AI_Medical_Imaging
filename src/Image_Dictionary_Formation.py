@@ -29,12 +29,20 @@ def compute_hashes_parallel(imagePaths):
     return hashes
 
 def create_dictionary(hashes, only_duplicates=False):
-    dict = {"filenames": [], "hashvalues": []}
-    for hash_value, paths in hashes.items():
-        if only_duplicates and len(paths) <= 1:
-            continue
-        dict["filenames"].extend([os.path.basename(path) for path in paths])
-        dict["hashvalues"].extend([hash_value] * len(paths))
+    if only_duplicates:
+        dict = {"filenames": [], "hashvalues": [], "duplicates": []}
+        for hash_value, paths in hashes.items():
+            if len(paths) > 1:
+                for i, primary in enumerate(paths):
+                    duplicates = [os.path.basename(p) for j, p in enumerate(paths) if j != i]
+                    dict["filenames"].append(os.path.basename(primary))
+                    dict["hashvalues"].append(hash_value)
+                    dict["duplicates"].append(", ".join(duplicates))
+    else:
+        dict = {"filenames": [], "hashvalues": []}
+        for hash_value, paths in hashes.items():
+            dict["filenames"].extend([os.path.basename(path) for path in paths])
+            dict["hashvalues"].extend([hash_value] * len(paths))
     return dict
 
 # Construct the argument parser and parse arguments
