@@ -4,6 +4,7 @@ import argparse
 import cv2
 import os
 import concurrent.futures
+import json
 
 def dhash(image, hashSize=8):
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -68,6 +69,8 @@ ap.add_argument("-d", "--datasets", nargs='+', required=True,
                 help="paths to input datasets")
 ap.add_argument("-o", "--option", type=int, choices=[1, 2, 3], required=True,
                 help="1: Create dictionaries with duplicates only; 2: Create dictionaries with all the images; 3: Duplicates across datasets")
+ap.add_argument("-j", "--json", required=True,
+                help="path to save the output JSON file")
 args = vars(ap.parse_args())
 
 # Dictionary to store duplicates for each dataset
@@ -98,12 +101,17 @@ elif args["option"] == 3:
     result = find_duplicates_across_datasets(all_hashes)
 
 # Display the results
+output_file = args["json"]
 if args["option"] in [1, 2]:
-    for dataset_name, result in all_dataset_results.items():
-        print(f"[INFO] Result for dataset '{dataset_name}':")
-        print(result)
+    with open(output_file, "w") as f:
+        json.dump(all_dataset_results, f, indent=4)
+    # for dataset_name, result in all_dataset_results.items():
+    #     print(f"[INFO] Result for dataset '{dataset_name}':")
+    #     print(result)
 elif args["option"] == 3:
-    print("[INFO] Result for duplicates across datasets:")
-    # print(all_dataset_results["cross_datasets"])
-    # print("[INFO] Duplicate image dictionary:")
-    print(result)
+    with open(output_file, "w") as f:
+        json.dump(result, f, indent=4)
+    # print("[INFO] Result for duplicates across datasets:")
+    # # print(all_dataset_results["cross_datasets"])
+    # # print("[INFO] Duplicate image dictionary:")
+    # print(result)
